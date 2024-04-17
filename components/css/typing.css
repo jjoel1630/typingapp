@@ -1,0 +1,38 @@
+* {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+}
+
+.correct {
+	background-color: green;
+}
+
+.incorrect {
+	background-color: red;
+}
+
+.active {
+	color: blue;
+	text-decoration: underline;
+}
+
+input.text-input {
+	opacity: 0;
+	z-index: -999;
+	position: absolute;
+}
+
+div.text-container > p {
+	font-size: 25px;
+	text-align: justify;
+	letter-spacing: 2px;
+	word-break: break-all;
+}
+
+div.text-container > p > span {
+	font-size: 25px;
+	text-align: justify;
+	letter-spacing: 2px;
+	word-break: break-all;
+}
