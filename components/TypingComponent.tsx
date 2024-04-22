@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { paragraph } from "../lib/paragraphs/paragraphs";
+import { paragraph, words } from "../lib/paragraphs/paragraphs";
 
 import "./css/typing.css";
 
@@ -22,9 +22,10 @@ function TypingComponent({}: Props) {
 	const inputRef = useRef<HTMLInputElement | null>(null);
 
 	const [typing, setTyping] = useState(true);
+	const [reset, setReset] = useState(false);
 	const [startTime, setStartTime] = useState<number | null>(null);
 	const [currentTime, setCurrentTime] = useState<number>(0);
-	const [gameModeTime, setGameModeTime] = useState(5);
+	const [gameModeTime, setGameModeTime] = useState(15);
 
 	const [classLists, setClassLists] = useState<string[][]>([]);
 	const [wordArray, setWordArray] = useState<string[]>([]);
@@ -48,8 +49,11 @@ function TypingComponent({}: Props) {
 	}, [gameModeTime, rawStats]);
 
 	const initClassList = useCallback(() => {
-		const rd = 0; //Math.random() * 10;
-		const p = paragraph[rd];
+		let p = "";
+		for (let i = 0; i < 150; ++i) {
+			p += `${words[Math.floor(Math.random() * words.length)]} `;
+		}
+
 		const wordLen: number = p.split(" ").length;
 		let temp: string[][] = [];
 		for (let i = 0; i < wordLen; ++i) {
@@ -58,12 +62,12 @@ function TypingComponent({}: Props) {
 		}
 		temp[0][0] = ACTIVE_CLASS;
 		setClassLists(temp);
-		setRandomParagraphIndex(rd);
 		setWordArray(p.split(" "));
+		// console.log("classlist function");
 	}, []);
 
 	const initialize = useCallback(() => {
-		setRandomParagraphIndex(0);
+		// console.log("Initialize function");
 		setIdxs([0, 0]);
 		setStats([0, 0, 0, 0]);
 		setRawStats([0, 0]);
@@ -72,15 +76,16 @@ function TypingComponent({}: Props) {
 	}, [initClassList]);
 
 	const startGame = useCallback(() => {
-		console.log("Game Started");
-		initialize();
+		// console.log("Game Started");
+		// initialize();
 		setTyping(true);
-		initClassList();
+		setReset(false);
+		// initClassList();
 		setStartTime(Date.now());
-	}, [initClassList, initialize]);
+	}, []);
 
 	const stopGame = useCallback(() => {
-		console.log("Game Stopped");
+		// console.log("Game Stopped");
 		setTyping(false);
 		setStartTime(null);
 		setCurrentTime(0);
@@ -88,7 +93,7 @@ function TypingComponent({}: Props) {
 	}, [calcFinalStats]);
 
 	const resetGame = useCallback(() => {
-		console.log("Game Stopped");
+		// console.log("Game Reset");
 		setStartTime(null);
 		setCurrentTime(0);
 		initialize();
@@ -97,6 +102,7 @@ function TypingComponent({}: Props) {
 	const inputRefCallback = useCallback(
 		(e: any) => {
 			if (isLetter(e.key)) {
+				// console.log("Inputref callback");
 				inputRef.current?.removeEventListener("keydown", inputRefCallback);
 				startGame();
 			}
@@ -107,9 +113,11 @@ function TypingComponent({}: Props) {
 	const documentRefCallback = useCallback(
 		(e: any) => {
 			if (e.key === "Tab") {
+				// console.log("Documentref reset");
 				e.preventDefault();
 				resetGame();
 				setTyping(true);
+				setReset(true);
 			}
 		},
 		[resetGame]
@@ -120,15 +128,19 @@ function TypingComponent({}: Props) {
 	};
 
 	useEffect(() => {
-		inputRef.current?.focus();
-		inputRef.current?.addEventListener("keydown", inputRefCallback);
-	}, [typing, inputRefCallback]);
-
-	useEffect(() => {
 		initialize();
 		inputRef.current?.focus();
 		inputRef.current?.addEventListener("keydown", inputRefCallback);
+		// console.log("Initialize useeffect");
 	}, [inputRefCallback, initialize]);
+
+	useEffect(() => {
+		if (reset) {
+			inputRef.current?.focus();
+			inputRef.current?.addEventListener("keydown", inputRefCallback);
+			// console.log("Inputref focus useeffect");
+		}
+	}, [inputRefCallback, reset]);
 
 	useEffect(() => {
 		document.addEventListener("keydown", documentRefCallback);
@@ -158,8 +170,9 @@ function TypingComponent({}: Props) {
 		let [correct, incorrect, extra, missing] = stats;
 		let [rawCorrect, rawIncorrect] = rawStats;
 
-		const newClassLists = [...classLists];
+		let newClassLists = [...classLists];
 		let newTypedWordArray = [...typedWordArray];
+		let newWordArray = [...wordArray];
 		const wordLength = wordArray[wIdx].length;
 
 		// console.log("before", cIdx);
@@ -183,6 +196,11 @@ function TypingComponent({}: Props) {
 			}
 			++wIdx;
 			cIdx = 0;
+			newWordArray = [...newWordArray, `${words[Math.floor(Math.random() * words.length)]} `];
+			newClassLists = [
+				...newClassLists,
+				new Array(newWordArray[newWordArray.length - 1].length).fill(""),
+			];
 
 			newClassLists[wIdx][cIdx] = ACTIVE_CLASS;
 		}
@@ -260,6 +278,7 @@ function TypingComponent({}: Props) {
 		// console.log("after", newTypedWordArray);
 
 		setIdxs([wIdx, cIdx]);
+		setWordArray(newWordArray);
 		setStats([correct, incorrect, extra, missing]);
 		setRawStats([rawCorrect, rawIncorrect]);
 		setClassLists(newClassLists);
