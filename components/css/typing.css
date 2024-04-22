@@ -12,6 +12,14 @@
 	background-color: red;
 }
 
+.missing {
+	background-color: yellow;
+}
+
+.extra {
+	background-color: lightcoral;
+}
+
 .active {
 	color: blue;
 	text-decoration: underline;

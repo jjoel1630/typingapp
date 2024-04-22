@@ -8,8 +8,6 @@ export default function RootLayout({
 }: Readonly<{
 	children: React.ReactNode;
 }>) {
-	const session = cookies().get("user_id")?.value || null;
-
 	return (
 		<html lang="en">
 			<body className={inter.className}>{children}</body>
