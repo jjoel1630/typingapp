@@ -16,7 +16,7 @@ export default function Profile() {
 			{session ? (
 				// <TypingComponent />
 				<div className="parent-container">
-					<Timer targetDate={"June 14, 2024 00:00:00"} session={session} />
+					<Timer targetDate={"June 15, 2024 00:00:00"} session={session} />
 				</div>
 			) : (
 				<>
