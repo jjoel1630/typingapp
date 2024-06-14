@@ -1,0 +1,18 @@
+.parent-container {
+	position: relative; /* This makes the positioning context for the absolutely positioned child */
+	width: 100vw;
+	height: auto;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+.timer {
+	position: absolute;
+	top: 0; /* Aligns the element to the top */
+	left: 0; /* Aligns the element to the left */
+	margin: 0; /* Removes default margin to ensure it's truly at the top left */
+	padding: 10px; /* Optional, for some spacing inside the paragraph */
+	color: white; /* Optional, improves visibility */
+	z-index: 1000; /* Ensures it's above other content */
+}

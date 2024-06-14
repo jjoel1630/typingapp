@@ -1,10 +1,12 @@
 "use client";
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { paragraph, words } from "../lib/paragraphs/paragraphs";
 
-// import "./css/typing.css";
-import "./css/typing.css";
+import { words } from "../lib/paragraphs/filtered";
+import { birthday } from "../lib/paragraphs/birthday";
+
+import "./css/birthday-typing.css";
+import BirthdayGift from "./BirthdayGift";
 
 type Props = {};
 
@@ -19,8 +21,11 @@ const MISSING_CLASS = "missing";
 const INCORRECT_CLASS = "incorrect";
 const EXTRA_CLASS = "extra";
 
-function TypingComponent({}: Props) {
+function BirthdayComponent({}: Props) {
 	const inputRef = useRef<HTMLInputElement | null>(null);
+	const containerRef = useRef<HTMLDivElement | null>(null);
+
+	const [done, setDone] = useState<boolean>(false);
 
 	const [typing, setTyping] = useState(true);
 	const [reset, setReset] = useState(false);
@@ -31,9 +36,9 @@ function TypingComponent({}: Props) {
 	const [classLists, setClassLists] = useState<string[][]>([]);
 	const [wordArray, setWordArray] = useState<string[]>([]);
 	const [typedWordArray, setTypedWordArray] = useState<string[]>([]);
-	const [randomParagraphIndex, setRandomParagraphIndex] = useState(0);
+	const [runningCharIdx, setRunningCharIdx] = useState<number[]>([0, 0, 0]);
 
-	const [idxs, setIdxs] = useState<number[]>([0, 0]);
+	const [idxs, setIdxs] = useState<number[]>([0, 0, 41]);
 	const [stats, setStats] = useState([0, 0, 0, 0]);
 	const [rawStats, setRawStats] = useState([0, 0]);
 
@@ -50,10 +55,7 @@ function TypingComponent({}: Props) {
 	}, [gameModeTime, rawStats]);
 
 	const initClassList = useCallback(() => {
-		let p = "";
-		for (let i = 0; i < 70; ++i) {
-			p += `${words[Math.floor(Math.random() * words.length)]} `;
-		}
+		let p = birthday;
 
 		const wordLen: number = p.split(" ").length;
 		let temp: string[][] = [];
@@ -61,17 +63,16 @@ function TypingComponent({}: Props) {
 			let t: string[] = new Array(p.split(" ")[i].length).fill("");
 			temp = [...temp, t];
 		}
+
 		temp[0][0] = ACTIVE_CLASS;
 		setClassLists(temp);
 		const arr = p.split(" ");
-		arr.pop();
 		setWordArray(arr);
-		// console.log("classlist function");
 	}, []);
 
 	const initialize = useCallback(() => {
 		// console.log("Initialize function");
-		setIdxs([0, 0]);
+		setIdxs([0, 0, 41]);
 		setStats([0, 0, 0, 0]);
 		setRawStats([0, 0]);
 		setTypedWordArray([]);
@@ -95,17 +96,10 @@ function TypingComponent({}: Props) {
 		calcFinalStats();
 	}, [calcFinalStats]);
 
-	const resetGame = useCallback(() => {
-		// console.log("Game Reset");
-		setStartTime(null);
-		setCurrentTime(0);
-		initialize();
-	}, [initialize]);
-
 	const inputRefCallback = useCallback(
 		(e: any) => {
 			if (isLetter(e.key)) {
-				// console.log("Inputref callback");
+				// console.log("input ref callback");
 				inputRef.current?.removeEventListener("keydown", inputRefCallback);
 				startGame();
 			}
@@ -113,18 +107,12 @@ function TypingComponent({}: Props) {
 		[startGame]
 	);
 
-	const documentRefCallback = useCallback(
-		(e: any) => {
-			if (e.key === "Tab") {
-				// console.log("Documentref reset");
-				e.preventDefault();
-				resetGame();
-				setTyping(true);
-				setReset(true);
-			}
-		},
-		[resetGame]
-	);
+	const documentRefCallback = useCallback((e: any) => {
+		if (e.key === "Tab") {
+			// console.log("Documentref reset");
+			e.preventDefault();
+		}
+	}, []);
 
 	const focusInput = () => {
 		inputRef.current?.focus();
@@ -169,65 +157,45 @@ function TypingComponent({}: Props) {
 
 	const markLetters = (e: any) => {
 		const typedLetter = e.nativeEvent.data;
-		let [wIdx, cIdx] = idxs;
+		let [wIdx, cIdx, idxPx] = idxs;
 		let [correct, incorrect, extra, missing] = stats;
 		let [rawCorrect, rawIncorrect] = rawStats;
+		let [rCIdx, wCIdx, wCN] = runningCharIdx;
+
+		if (wIdx === wordArray.length - 1 && cIdx === wordArray[wIdx].length - 1) {
+			if (!done) setDone(true);
+			return;
+		}
 
 		let newClassLists = [...classLists];
 		let newTypedWordArray = [...typedWordArray];
 		let newWordArray = [...wordArray];
 		const wordLength = wordArray[wIdx].length;
 
-		// console.log("before", cIdx);
-		// console.log("before", newClassLists[wIdx]);
-		// console.log("before", newTypedWordArray);
-
 		if (wIdx >= newTypedWordArray.length) newTypedWordArray = [...newTypedWordArray, ""];
 
-		if (typedLetter === " " && cIdx !== 0) {
-			if (cIdx === wordLength) ++correct;
-			else {
-				for (let i = cIdx; i < wordLength; ++i) {
-					newClassLists[wIdx][i] = MISSING_CLASS;
-					newTypedWordArray[wIdx] += "#";
-					++missing;
-				}
-				++incorrect;
-				++correct;
-				++rawIncorrect;
-				++rawCorrect;
-			}
+		if (typedLetter === " " && cIdx !== 0 && cIdx === wordLength) {
+			rCIdx += newWordArray[wIdx].length;
 			++wIdx;
 			cIdx = 0;
-			newWordArray = [...newWordArray, `${words[Math.floor(Math.random() * words.length)]} `];
-			newClassLists = [
-				...newClassLists,
-				new Array(newWordArray[newWordArray.length - 1].length).fill(""),
-			];
+
+			newWordArray = [...newWordArray];
+			newClassLists = [...newClassLists];
 
 			newClassLists[wIdx][cIdx] = ACTIVE_CLASS;
 		}
 
-		if (typedLetter !== null && isLetter(typedLetter)) {
-			if (cIdx >= wordArray[wIdx].length) {
-				++incorrect;
-				++rawIncorrect;
-				++extra;
-				newClassLists[wIdx] = [...newClassLists[wIdx], EXTRA_CLASS];
-				++cIdx;
-			} else if (wordArray[wIdx][cIdx] === typedLetter) {
-				++correct;
-				++rawCorrect;
-				newClassLists[wIdx][cIdx] = CORRECT_CLASS;
-				++cIdx;
-				if (cIdx < wordArray[wIdx].length) newClassLists[wIdx][cIdx] = ACTIVE_CLASS;
-			} else if (wordArray[wIdx][cIdx] !== typedLetter) {
-				++incorrect;
-				++rawIncorrect;
-				newClassLists[wIdx][cIdx] = INCORRECT_CLASS;
-				++cIdx;
-				if (cIdx < wordArray[wIdx].length) newClassLists[wIdx][cIdx] = ACTIVE_CLASS;
-			}
+		if (
+			((typedLetter !== null && isLetter(typedLetter)) ||
+				typedLetter === "." ||
+				typedLetter === ",") &&
+			wordArray[wIdx][cIdx] === typedLetter
+		) {
+			++correct;
+			++rawCorrect;
+			newClassLists[wIdx][cIdx] = CORRECT_CLASS;
+			++cIdx;
+			if (cIdx < wordArray[wIdx].length) newClassLists[wIdx][cIdx] = ACTIVE_CLASS;
 			newTypedWordArray[wIdx] += typedLetter;
 		}
 
@@ -276,11 +244,8 @@ function TypingComponent({}: Props) {
 			newClassLists[wIdx][cIdx] = ACTIVE_CLASS;
 		}
 
-		// console.log("after", cIdx);
-		// console.log("after", newClassLists[wIdx]);
-		// console.log("after", newTypedWordArray);
-
-		setIdxs([wIdx, cIdx]);
+		setIdxs([wIdx, cIdx, idxPx + 20]);
+		setRunningCharIdx([rCIdx, wCIdx, wCN]);
 		setWordArray(newWordArray);
 		setStats([correct, incorrect, extra, missing]);
 		setRawStats([rawCorrect, rawIncorrect]);
@@ -289,73 +254,73 @@ function TypingComponent({}: Props) {
 	};
 
 	return (
-		<div className="type-test">
-			{typing ? (
-				<>
-					<header>
-						<button onClick={() => setGameModeTime(15)}>15 seconds</button>
-						<button onClick={() => setGameModeTime(30)}>30 seconds</button>
-					</header>
-					<input
-						type="text"
-						className="text-input"
-						ref={inputRef}
-						onChange={markLetters}
-					/>
-					<div className="text-container">
-						<p className="text-paragraph" onClick={focusInput}>
-							{wordArray.map((val: string, idx: number) => {
-								return (
-									<span key={idx} className="word">
-										{val.split("").map((charac: string, charIdx: number) => {
-											return (
-												<span
-													className={`${LETTER_CLASS} ${classLists[idx][charIdx]}`}
-													key={charIdx}>
-													{charac}
-												</span>
-											);
-										})}
-										{typedWordArray[idx]
-											?.split("")
-											.map((charac: string, charIdx: number) => {
-												if (
-													charIdx >= wordArray[idx].length &&
-													wordArray[idx] !== "#"
-												) {
-													return (
+		<>
+			{!done ? (
+				<div className="birthday-container">
+					<div id="birthday-main-typing">
+						<div className="birthday-main-typing-container">
+							<div className="birthday-text-bar">
+								<div className="birthday-circle-container">
+									<div className="birthday-circle"></div>
+									<div className="birthday-circle"></div>
+									<div className="birthday-circle"></div>
+								</div>
+								<div className="birthday-name-container">
+									<p>User</p>
+								</div>
+							</div>
+							<div className="birthday-typing-section">
+								<>
+									<input
+										type="text"
+										className="birthday-text-input"
+										ref={inputRef}
+										onChange={markLetters}
+									/>
+									<div className="birthday-text-container">
+										<div
+											className="birthday-text-paragraph"
+											onClick={focusInput}
+											ref={containerRef}>
+											{wordArray.map((val: string, idx: number) => {
+												return (
+													<div key={idx} className="birthday-word">
+														{val
+															.split("")
+															.map(
+																(
+																	charac: string,
+																	charIdx: number
+																) => {
+																	return (
+																		<span
+																			className={`${LETTER_CLASS} ${classLists[idx][charIdx]}`}
+																			key={charIdx}>
+																			{charac}
+																		</span>
+																	);
+																}
+															)}
 														<span
-															className={`${LETTER_CLASS} ${EXTRA_CLASS}`}
-															key={charIdx}>
-															{charac}
+															className={`${LETTER_CLASS}`}
+															key={idx}>
+															{" "}
 														</span>
-													);
-												}
+													</div>
+												);
 											})}
-										<span className={`${LETTER_CLASS}`} key={idx}>
-											{" "}
-										</span>
-									</span>
-								);
-							})}
-						</p>
+										</div>
+									</div>
+								</>
+							</div>
+						</div>
 					</div>
-					<div className="stats">
-						<p className="current-timer">{gameModeTime - currentTime}</p>
-					</div>
-				</>
-			) : (
-				<div className="stats">
-					<p className="final-raw">{raw}</p>
-					<p className="final-wpm">{wpm}</p>
-					<p className="final-accuracy">{accuracy}</p>
-					<p className="final-characters">
-						{stats[0]} / {stats[1]} / {stats[2]} / {stats[3]}
-					</p>
 				</div>
+			) : (
+				<BirthdayGift />
 			)}
-		</div>
+		</>
 	);
 }
 
-export default TypingComponent;
+export default BirthdayComponent;

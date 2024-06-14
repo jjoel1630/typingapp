@@ -29,7 +29,12 @@ function SignIn({ session }: { session: string | null }) {
 	};
 
 	if (userSessionID) {
-		return <button onClick={handleSignOut}>Sign Out</button>;
+		return (
+			<>
+				{/* <p>{userSessionID}</p> */}
+				<button onClick={handleSignOut}>Sign Out</button>
+			</>
+		);
 	}
 
 	return (

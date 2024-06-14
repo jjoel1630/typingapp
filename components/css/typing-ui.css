@@ -1,0 +1,65 @@
+body {
+	font-family: "Roboto", sans-serif;
+	background-color: #f0fff4; /* a light green background */
+	color: #333;
+	margin: 0;
+	padding: 0;
+}
+
+.typing-app {
+	max-width: 800px;
+	margin: 0 auto;
+	padding: 20px;
+}
+
+header {
+	display: flex;
+	justify-content: space-between;
+	margin-bottom: 10px;
+}
+
+button {
+	padding: 10px 15px;
+	background-color: #b2f2bb;
+	border: none;
+	border-radius: 5px;
+	cursor: pointer;
+	font-size: 1em;
+}
+
+button:hover,
+button:focus {
+	background-color: #81c784;
+}
+
+input[type="text"] {
+	width: 100%;
+	padding: 10px;
+	font-size: 1.2em;
+	border: 2px solid #b2f2bb;
+	border-radius: 5px;
+	margin-bottom: 20px;
+}
+
+.text-container {
+	background-color: #e6ffe9;
+	padding: 20px;
+	border-radius: 5px;
+}
+
+.word-container {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+}
+
+.word {
+	background-color: #81c784;
+	padding: 5px;
+	border-radius: 4px;
+}
+
+.letter {
+	color: #fff;
+	font-weight: bold;
+}

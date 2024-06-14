@@ -1,0 +1,10 @@
+.birthday-note {
+	text-align: left;
+	width: 40%;
+	font-size: 20px;
+	margin-top: 40px;
+}
+
+.birthday-note > p {
+	margin-bottom: 20px;
+}
