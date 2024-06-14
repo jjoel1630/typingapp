@@ -465,7 +465,7 @@ function GoodTypingComponent({ session }: Props) {
 								<div className="circle"></div>
 							</div>
 							<div className="name-container">
-								<p>User</p>
+								<p>Kamalini</p>
 							</div>
 						</div>
 						<div className="typing-section">

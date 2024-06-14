@@ -20,7 +20,7 @@ function BirthdayGift({}: Props) {
 				initialVelocityX={10}
 				initialVelocityY={10}
 			/>
-			<p>To my dearest Birthday Girl:</p>
+			<p>To my Birthday Girl:</p>
 			<p>Happy birthday, many returns of the day, etc. etc. All that stuff.</p>
 			<p>
 				Ok I had a completely different idea for this app and it would've been a lot cooler

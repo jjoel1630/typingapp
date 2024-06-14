@@ -266,7 +266,7 @@ function BirthdayComponent({}: Props) {
 									<div className="birthday-circle"></div>
 								</div>
 								<div className="birthday-name-container">
-									<p>User</p>
+									<p>Kamalini</p>
 								</div>
 							</div>
 							<div className="birthday-typing-section">
